@@ -1,15 +1,17 @@
+#include <iostream>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <cstdio>
 #include <string>
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
 
 SDL_Window* window = NULL;
 SDL_Surface* screenSurface = NULL;
 
-static bool init() {
+static bool init()
+{
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
         return false;
@@ -18,10 +20,17 @@ static bool init() {
         fprintf(stderr, "could not initialize sdl2_image: %s\n", IMG_GetError());
         return false;
     }
+    SDL_DisplayMode displayMode;
+    if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
+        std::cerr << "SDL_GetCurrentDisplayMode failed: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
     window = SDL_CreateWindow(
         "hello_sdl2",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        SCREEN_WIDTH, SCREEN_HEIGHT,
+        (int)displayMode.w, (int)displayMode.h,
         SDL_WINDOW_SHOWN
     );
     if (window == NULL) {
@@ -36,7 +45,8 @@ static bool init() {
     return true;
 }
 
-static SDL_Surface* loadImage(std::string path) {
+static SDL_Surface* loadImage(std::string path) 
+{
     SDL_Surface* img = IMG_Load(path.c_str());
     if (img == NULL) {
         fprintf(stderr, "could not load image: %s\n", IMG_GetError());
@@ -48,18 +58,20 @@ static SDL_Surface* loadImage(std::string path) {
     return optimizedImg;
 }
 
-static void close() {
+static void close() 
+{
     SDL_FreeSurface(screenSurface); screenSurface = NULL;
     SDL_DestroyWindow(window); window = NULL;
     SDL_Quit();
 }
 
-int main(int argc, char* args[]) {
+int main(int argc, char* args[]) 
+{
     if (!init()) return 1;
+
     SDL_Surface* img = loadImage("../stupid map.png");
     if (img == NULL) return 1;
 
-    // Main game loop
     bool running = true;
     while (running) {
         // Handle events
