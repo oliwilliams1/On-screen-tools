@@ -1,46 +1,88 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <cstdio>
+#include <string>
 
-int main(int argc, char* argv[]) {
-    // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        printf("SDL_Init error: %s\n", SDL_GetError());
-        return 1;
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+
+SDL_Window* window = NULL;
+SDL_Surface* screenSurface = NULL;
+
+static bool init() {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
+        return false;
     }
-
-    // Create a window
-    SDL_Window* window = SDL_CreateWindow("SDL Window",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        800, 600,
-        SDL_WINDOW_SHOWN);
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        fprintf(stderr, "could not initialize sdl2_image: %s\n", IMG_GetError());
+        return false;
+    }
+    window = SDL_CreateWindow(
+        "hello_sdl2",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        SCREEN_WIDTH, SCREEN_HEIGHT,
+        SDL_WINDOW_SHOWN
+    );
     if (window == NULL) {
-        printf("SDL_CreateWindow error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
+        fprintf(stderr, "could not create window: %s\n", SDL_GetError());
+        return false;
     }
+    screenSurface = SDL_GetWindowSurface(window);
+    if (screenSurface == NULL) {
+        fprintf(stderr, "could not get window: %s\n", SDL_GetError());
+        return false;
+    }
+    return true;
+}
 
-    // Main loop
-    SDL_Event event;
+static SDL_Surface* loadImage(std::string path) {
+    SDL_Surface* img = IMG_Load(path.c_str());
+    if (img == NULL) {
+        fprintf(stderr, "could not load image: %s\n", IMG_GetError());
+        return NULL;
+    }
+    SDL_Surface* optimizedImg = SDL_ConvertSurface(img, screenSurface->format, 0);
+    if (optimizedImg == NULL) fprintf(stderr, "could not optimize image: %s\n", SDL_GetError());
+    SDL_FreeSurface(img);
+    return optimizedImg;
+}
+
+static void close() {
+    SDL_FreeSurface(screenSurface); screenSurface = NULL;
+    SDL_DestroyWindow(window); window = NULL;
+    SDL_Quit();
+}
+
+int main(int argc, char* args[]) {
+    if (!init()) return 1;
+    SDL_Surface* img = loadImage("../stupid map.png");
+    if (img == NULL) return 1;
+
+    // Main game loop
     bool running = true;
     while (running) {
+        // Handle events
+        SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }
         }
 
-        // Clear the window
-        SDL_SetRenderDrawColor(SDL_GetRenderer(window), 0, 0, 0, 255);
-        SDL_RenderClear(SDL_GetRenderer(window));
-        SDL_RenderPresent(SDL_GetRenderer(window));
+        // Clear the screen
+        SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
 
-        // Delay for 16ms (approx 60 FPS)
-        SDL_Delay(16);
+        // Blit the image to the screen
+        SDL_BlitSurface(img, NULL, screenSurface, NULL);
+        SDL_UpdateWindowSurface(window);
+
+        // Delay for a short time
+        SDL_Delay(16); // Approximately 60 FPS
     }
 
-    // Cleanup
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
+    SDL_FreeSurface(img);
+    img = NULL;
+    close();
     return 0;
 }
