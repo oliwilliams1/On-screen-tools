@@ -108,13 +108,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\imhun\AppData\Local\Programs\Python\Python312\include;../Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2_image.lib;SDL2.lib;SDL2main.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\imhun\AppData\Local\Programs\Python\Python312\libs;../Lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>python312.lib;SDL2_image.lib;SDL2.lib;SDL2main.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,9 +135,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="screenshotTaker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\stupid map.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="screenshot.h" />
+    <ClInclude Include="screenshotTaker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

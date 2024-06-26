@@ -1,8 +1,16 @@
 #include <iostream>
-#include <SDL.h>
-#include <SDL_image.h>
-#include <cstdio>
-#include <string>
+#include <SDL2/SDL.h>
+#undef main
+#include <SDL2/SDL_image.h>
+#include "screenshotTaker.h"
+
+#ifdef _DEBUG
+#undef _DEBUG
+#include "Python.h"
+#define _DEBUG
+#else
+#include "Python.h"
+#endif
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -45,7 +53,7 @@ static bool init()
     return true;
 }
 
-static SDL_Surface* loadImage(std::string path) 
+static SDL_Surface* loadImage(std::string path)
 {
     SDL_Surface* img = IMG_Load(path.c_str());
     if (img == NULL) {
@@ -58,14 +66,14 @@ static SDL_Surface* loadImage(std::string path)
     return optimizedImg;
 }
 
-static void close() 
+static void close()
 {
     SDL_FreeSurface(screenSurface); screenSurface = NULL;
     SDL_DestroyWindow(window); window = NULL;
     SDL_Quit();
 }
 
-int main(int argc, char* args[]) 
+static int sdlThing()
 {
     if (!init()) return 1;
 
@@ -96,5 +104,21 @@ int main(int argc, char* args[])
     SDL_FreeSurface(img);
     img = NULL;
     close();
+    
+}
+
+void takeScreenshot()
+{
+    PyRun_SimpleString(R"(ImageGrab.grab().save("Screenshot.png"))");
+}
+
+int main() {
+    ScreenshotTaker* screenshotTaker = new ScreenshotTaker();
+	screenshotTaker->takeScreenshot("Screenshot.png");
+
+	if (screenshotTaker != NULL) {
+		delete screenshotTaker;
+	}
+
     return 0;
 }
