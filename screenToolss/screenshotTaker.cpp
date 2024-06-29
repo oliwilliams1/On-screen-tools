@@ -1,4 +1,5 @@
 #include "ScreenshotTaker.h"
+#include <iostream>
 
 void ScreenshotTaker::initialize()
 {
@@ -37,14 +38,13 @@ ScreenshotTaker::ScreenshotTaker()
 
 ScreenshotTaker::~ScreenshotTaker()
 {
-    Py_XDECREF(pSaveFunc);
     Py_XDECREF(pScreenshot);
     Py_XDECREF(pFunc);
     Py_DECREF(pModule);
     Py_Finalize();
 }
 
-void ScreenshotTaker::takeScreenshot(const std::string& filename)
+std::vector<uint8_t> ScreenshotTaker::takeScreenshot()
 {
     pScreenshot = PyObject_CallObject(pFunc, NULL);
     if (pScreenshot == NULL) {
@@ -52,20 +52,25 @@ void ScreenshotTaker::takeScreenshot(const std::string& filename)
             PyErr_Print();
         }
         std::cerr << "Error occurred while taking screenshot" << std::endl;
-        return;
+        return std::vector<uint8_t>();
     }
 
-    pSaveFunc = PyObject_GetAttrString(pScreenshot, "save");
-    if (pSaveFunc && PyCallable_Check(pSaveFunc)) {
-        PyObject* pFilename = PyUnicode_FromString(filename.c_str());
-        PyObject_CallFunction(pSaveFunc, "O", pFilename);
-        Py_DECREF(pFilename);
+    Py_INCREF(pScreenshot);
+
+    // Get the byte data from the pScreenshot object
+    PyObject* pByteData = PyObject_CallMethod(pScreenshot, "tobytes", NULL);
+    if (pByteData == NULL) {
+        std::cerr << "Error occurred while getting byte data from pScreenshot object" << std::endl;
+        Py_DECREF(pScreenshot);
+        return std::vector<uint8_t>();
     }
-    else {
-        if (PyErr_Occurred()) {
-            PyErr_Print();
-        }
-        std::cerr << "Error occurred while saving screenshot" << std::endl;
-    }
-    std::cout << "Screenshot saved to " << filename << std::endl;
+
+    // Copy the byte data into a std::vector<uint8_t>
+    Py_ssize_t size = PyBytes_Size(pByteData);
+    std::vector<uint8_t> imageData(size);
+    memcpy(imageData.data(), PyBytes_AsString(pByteData), size);
+
+    Py_DECREF(pByteData);
+    Py_DECREF(pScreenshot);
+    return imageData;
 }

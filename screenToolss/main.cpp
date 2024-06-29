@@ -16,7 +16,10 @@
 #define SCREEN_HEIGHT 1080
 
 SDL_Window* window = NULL;
-SDL_Surface* screenSurface = NULL;
+SDL_Renderer* renderer = NULL;
+SDL_Texture* texture = NULL;
+
+bool transparent = false;
 
 static bool init()
 {
@@ -38,47 +41,52 @@ static bool init()
     window = SDL_CreateWindow(
         "hello_sdl2",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        (int)displayMode.w, (int)displayMode.h,
+        SCREEN_WIDTH, SCREEN_HEIGHT,
         SDL_WINDOW_SHOWN
     );
+    SDL_SetWindowOpacity(window, (transparent ? 0.0f : 1.0f));
     if (window == NULL) {
         fprintf(stderr, "could not create window: %s\n", SDL_GetError());
         return false;
     }
-    screenSurface = SDL_GetWindowSurface(window);
-    if (screenSurface == NULL) {
-        fprintf(stderr, "could not get window: %s\n", SDL_GetError());
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL) {
+        fprintf(stderr, "could not create renderer: %s\n", SDL_GetError());
         return false;
     }
     return true;
 }
 
-static SDL_Surface* loadImage(std::string path)
-{
-    SDL_Surface* img = IMG_Load(path.c_str());
-    if (img == NULL) {
-        fprintf(stderr, "could not load image: %s\n", IMG_GetError());
-        return NULL;
-    }
-    SDL_Surface* optimizedImg = SDL_ConvertSurface(img, screenSurface->format, 0);
-    if (optimizedImg == NULL) fprintf(stderr, "could not optimize image: %s\n", SDL_GetError());
-    SDL_FreeSurface(img);
-    return optimizedImg;
-}
-
 static void close()
 {
-    SDL_FreeSurface(screenSurface); screenSurface = NULL;
-    SDL_DestroyWindow(window); window = NULL;
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
-static int sdlThing()
+static int sdlThing(std::vector<uint8_t> imageData)
 {
     if (!init()) return 1;
 
-    SDL_Surface* img = loadImage("../stupid map.png");
-    if (img == NULL) return 1;
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (texture == NULL) {
+        fprintf(stderr, "could not create texture: %s\n", SDL_GetError());
+        close();
+        return 1;
+    }
+
+    void* pixels;
+    int pitch;
+    if (SDL_LockTexture(texture, NULL, &pixels, &pitch) != 0) {
+        fprintf(stderr, "could not lock texture: %s\n", SDL_GetError());
+        close();
+        return 1;
+    }
+
+    memcpy(pixels, imageData.data(), imageData.size());
+
+    SDL_UnlockTexture(texture);
 
     bool running = true;
     while (running) {
@@ -91,34 +99,31 @@ static int sdlThing()
         }
 
         // Clear the screen
-        SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
 
-        // Blit the image to the screen
-        SDL_BlitSurface(img, NULL, screenSurface, NULL);
-        SDL_UpdateWindowSurface(window);
+        // Render the texture
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
 
         // Delay for a short time
         SDL_Delay(16); // Approximately 60 FPS
     }
 
-    SDL_FreeSurface(img);
-    img = NULL;
     close();
-    
-}
 
-void takeScreenshot()
-{
-    PyRun_SimpleString(R"(ImageGrab.grab().save("Screenshot.png"))");
+    return 0;
 }
 
 int main() {
     ScreenshotTaker* screenshotTaker = new ScreenshotTaker();
-	screenshotTaker->takeScreenshot("Screenshot.png");
+    std::vector<uint8_t> imageData = screenshotTaker->takeScreenshot();
 
-	if (screenshotTaker != NULL) {
-		delete screenshotTaker;
-	}
+    sdlThing(imageData);
+
+    if (screenshotTaker != NULL) {
+        delete screenshotTaker;
+    }
 
     return 0;
 }

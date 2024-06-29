@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #ifdef _DEBUG
 #undef _DEBUG
 #include <Python.h>
@@ -22,5 +23,5 @@ public:
     ScreenshotTaker();
     ~ScreenshotTaker();
 
-    void takeScreenshot(const std::string& filename);
+    std::vector<uint8_t> takeScreenshot();
 };
