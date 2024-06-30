@@ -36,21 +36,6 @@ static void renderCB()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    /*/ Render the texture
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // Draw a full-screen quad to display the texture
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f, -1.0f);
-    glTexCoord2f(1.0f, 1.0f); glVertex2f(1.0f, -1.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex2f(1.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, 1.0f);
-    glEnd();
-
-    glDisable(GL_TEXTURE_2D);
-    */
-
     glutPostRedisplay();
     glutSwapBuffers();
 }
@@ -59,7 +44,7 @@ static int glfwThing(std::vector<uint8_t> imageData)
 {
     if (!glewInit() == GLEW_OK) return 1;
 
-    /*GLuint texture;
+    GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -68,7 +53,6 @@ static int glfwThing(std::vector<uint8_t> imageData)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    */
 
     glutDisplayFunc(renderCB);
 
@@ -78,10 +62,10 @@ static int glfwThing(std::vector<uint8_t> imageData)
 }
 
 int main() {
-    if (!init()) return 1;
-
     ScreenshotTaker* screenshotTaker = new ScreenshotTaker();
     std::vector<uint8_t> imageData = screenshotTaker->takeScreenshot();
+
+    if (!init()) return 1;
 
     glfwThing(imageData);
 

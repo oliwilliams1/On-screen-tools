@@ -113,7 +113,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\imhun\AppData\Local\Programs\Python\Python312\libs;../Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../Lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>freeglut.lib;glew32.lib;python312.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
