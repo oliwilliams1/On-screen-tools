@@ -1,129 +1,95 @@
+#include <GL/glew.h>
+#include <GL/freeglut.h>
 #include <iostream>
-#include <SDL2/SDL.h>
-#undef main
-#include <SDL2/SDL_image.h>
 #include "screenshotTaker.h"
-
-#ifdef _DEBUG
-#undef _DEBUG
-#include "Python.h"
-#define _DEBUG
-#else
-#include "Python.h"
-#endif
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
-SDL_Texture* texture = NULL;
-
-bool transparent = false;
+GLuint texture;
 
 static bool init()
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
+    int argc = 0;
+    char* argv[] = { NULL };
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+    glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+    int window = glutCreateWindow("hello_glfw");
+
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        fprintf(stderr, "could not initialize glew\n");
         return false;
-    }
-    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-        fprintf(stderr, "could not initialize sdl2_image: %s\n", IMG_GetError());
-        return false;
-    }
-    SDL_DisplayMode displayMode;
-    if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
-        std::cerr << "SDL_GetCurrentDisplayMode failed: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
     }
 
-    window = SDL_CreateWindow(
-        "hello_sdl2",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        SCREEN_WIDTH, SCREEN_HEIGHT,
-        SDL_WINDOW_SHOWN
-    );
-    SDL_SetWindowOpacity(window, (transparent ? 0.0f : 1.0f));
-    if (window == NULL) {
-        fprintf(stderr, "could not create window: %s\n", SDL_GetError());
-        return false;
-    }
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL) {
-        fprintf(stderr, "could not create renderer: %s\n", SDL_GetError());
-        return false;
-    }
     return true;
 }
 
 static void close()
 {
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    glutDestroyWindow(glutGetWindow());
+    glutLeaveMainLoop();
 }
 
-static int sdlThing(std::vector<uint8_t> imageData)
+static void renderCB()
 {
-    if (!init()) return 1;
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
-    if (texture == NULL) {
-        fprintf(stderr, "could not create texture: %s\n", SDL_GetError());
-        close();
-        return 1;
-    }
+    /*/ Render the texture
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-    void* pixels;
-    int pitch;
-    if (SDL_LockTexture(texture, NULL, &pixels, &pitch) != 0) {
-        fprintf(stderr, "could not lock texture: %s\n", SDL_GetError());
-        close();
-        return 1;
-    }
+    // Draw a full-screen quad to display the texture
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f, -1.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(1.0f, -1.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(1.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, 1.0f);
+    glEnd();
 
-    memcpy(pixels, imageData.data(), imageData.size());
+    glDisable(GL_TEXTURE_2D);
+    */
 
-    SDL_UnlockTexture(texture);
+    glutPostRedisplay();
+    glutSwapBuffers();
+}
 
-    bool running = true;
-    while (running) {
-        // Handle events
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
-            }
-        }
+static int glfwThing(std::vector<uint8_t> imageData)
+{
+    if (!glewInit() == GLEW_OK) return 1;
 
-        // Clear the screen
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+    /*GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-        // Render the texture
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
+    // Upload the image data to the texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData.data());
 
-        // Delay for a short time
-        SDL_Delay(16); // Approximately 60 FPS
-    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    */
 
-    close();
+    glutDisplayFunc(renderCB);
+
+    glutMainLoop();
 
     return 0;
 }
 
 int main() {
+    if (!init()) return 1;
+
     ScreenshotTaker* screenshotTaker = new ScreenshotTaker();
     std::vector<uint8_t> imageData = screenshotTaker->takeScreenshot();
 
-    sdlThing(imageData);
+    glfwThing(imageData);
 
     if (screenshotTaker != NULL) {
         delete screenshotTaker;
     }
+
+    close();
 
     return 0;
 }

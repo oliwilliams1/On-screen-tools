@@ -114,7 +114,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\imhun\AppData\Local\Programs\Python\Python312\libs;../Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>python312.lib;SDL2_image.lib;SDL2.lib;SDL2main.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;python312.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,9 +138,7 @@
     <ClCompile Include="screenshotTaker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\stupid map.png" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="screenshot.h" />
     <ClInclude Include="screenshotTaker.h" />
   </ItemGroup>
