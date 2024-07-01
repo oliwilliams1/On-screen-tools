@@ -2,12 +2,12 @@
 #include <GL/freeglut.h>
 #include <iostream>
 #include "screenshotTaker.h"
+#include "Object.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
-GLuint texture;
-
+Object *screenObject;
 static bool init()
 {
     int argc = 0;
@@ -36,6 +36,8 @@ static void renderCB()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    screenObject->render();
+
     glutPostRedisplay();
     glutSwapBuffers();
 }
@@ -44,15 +46,15 @@ static int glfwThing(std::vector<uint8_t> imageData)
 {
     if (!glewInit() == GLEW_OK) return 1;
 
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    std::vector<vec3> vertices = { vec3(0, 0, 0), vec3(0, 1, 0), vec3(1, 1, 0), vec3(1, 0, 0) };
+    std::vector<vec3> indices  = { vec3(0, 1, 2), vec3(0, 2, 3) };
+    std::vector<vec2> texCoords= { vec2(0, 0), vec2(0, 1), vec2(1, 1), vec2(1, 0) };
 
-    // Upload the image data to the texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData.data());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    imageType imageType;
+    imageType.width = 800;
+    imageType.height = 600;
+    Object tempObject = Object(vertices, indices, texCoords, imageData, imageType);
+    screenObject = &tempObject;
 
     glutDisplayFunc(renderCB);
 
