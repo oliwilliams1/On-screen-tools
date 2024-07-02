@@ -1,81 +1,86 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <iostream>
+#include <fstream>
+#include "basicObject.h"
+#include "vector"
+#include "vec2.h"
 #include "screenshotTaker.h"
-#include "Object.h"
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+std::vector<basicObject> basicObjects;
 
-Object *screenObject;
-static bool init()
-{
-    int argc = 0;
-    char* argv[] = { NULL };
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-    int window = glutCreateWindow("hello_glfw");
-
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        fprintf(stderr, "could not initialize glew\n");
-        return false;
+const char* loadShaderSource(const char* filename) {
+    std::ifstream file(filename, std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
+        return nullptr;
     }
 
-    return true;
+    file.seekg(0, std::ios::end);
+    std::streampos file_size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    char* contents = new char[static_cast<size_t>(file_size) + 1];
+
+    file.read(contents, file_size);
+    contents[static_cast<size_t>(file_size)] = '\0';
+
+    file.close();
+    return contents;
 }
 
-static void close()
-{
-    glutDestroyWindow(glutGetWindow());
-    glutLeaveMainLoop();
-}
-
-static void renderCB()
+void renderCB()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    screenObject->render();
-
+    for (int i = 0; i < basicObjects.size(); i++) {
+		basicObjects[i].draw();
+	}
     glutPostRedisplay();
     glutSwapBuffers();
 }
 
-static int glfwThing(std::vector<uint8_t> imageData)
+void initScene()
 {
-    if (!glewInit() == GLEW_OK) return 1;
+    const vec2 rectVertices[] = {
+    {-1.0f, -1.0f},
+    {-1.0f,  1.0f},
+    { 1.0f,  1.0f},
+    { 1.0f, -1.0f}
+    };
+    const GLuint rectIndices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
 
-    std::vector<vec3> vertices = { vec3(0, 0, 0), vec3(0, 1, 0), vec3(1, 1, 0), vec3(1, 0, 0) };
-    std::vector<vec3> indices  = { vec3(0, 1, 2), vec3(0, 2, 3) };
-    std::vector<vec2> texCoords= { vec2(0, 0), vec2(0, 1), vec2(1, 1), vec2(1, 0) };
+    const vec2 rectUVs[] = {
+        {0.0f, 0.0f},
+        {0.0f, 1.0f},
+        {1.0f, 1.0f},
+        {1.0f, 0.0f}
+    };
 
-    imageType imageType;
-    imageType.width = 800;
-    imageType.height = 600;
-    Object tempObject = Object(vertices, indices, texCoords, imageData, imageType);
-    screenObject = &tempObject;
+	const char* vertexShaderSource = loadShaderSource("vert.glsl");
+	const char* fragmentShaderSource = loadShaderSource("frag.glsl");
 
-    glutDisplayFunc(renderCB);
-
-    glutMainLoop();
-
-    return 0;
+    basicObject rect(rectVertices, 4, rectIndices, 6, rectUVs, 4, vertexShaderSource, fragmentShaderSource);
+    basicObjects.push_back(rect);
 }
 
-int main() {
-    ScreenshotTaker* screenshotTaker = new ScreenshotTaker();
-    std::vector<uint8_t> imageData = screenshotTaker->takeScreenshot();
+int main(int argc, char** argv) 
+{
+    ScreenshotTaker screenshotTaker;
+    std::vector<uint8_t> imageData = screenshotTaker.takeScreenshot();
 
-    if (!init()) return 1;
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
-    glfwThing(imageData);
+    glutInitWindowSize(800, 600);
+    glutCreateWindow("OpenGL Example");
 
-    if (screenshotTaker != NULL) {
-        delete screenshotTaker;
-    }
+    glewInit();
+    initScene();
 
-    close();
-
+    glutDisplayFunc(renderCB);
+    glutMainLoop();
     return 0;
 }

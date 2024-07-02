@@ -23,50 +23,51 @@ GLuint createTexture(std::vector<uint8_t> imageData, imageType imageType)
 
 
 // Vertex Shader
-const char* vertexShaderSource = "#version 330 core\n"
+const char* vertexShaderSource = "#version 460 core\n"
 "layout (location = 0) in vec3 position;\n"
-"layout (location = 1) in vec2 texCoord;\n"
-"out vec2 TexCoord;\n"
 "void main()\n"
 "{\n"
 "   gl_Position = vec4(position, 1.0);\n"
-"   TexCoord = texCoord;\n"
 "}\0";
 
 // Fragment Shader
-const char* fragmentShaderSource = "#version 330 core\n"
-"in vec2 TexCoord;\n"
+const char* fragmentShaderSource = "#version 460 core\n"
 "out vec4 FragColor;\n"
-"uniform sampler2D textureSampler;\n"
 "void main()\n"
 "{\n"
-"   FragColor = texture(textureSampler, TexCoord);\n"
+"   FragColor = vec4(0, 1, 0, 1);\n"
 "}\0";
 
-// Helper function to load and compile shaders
-GLuint loadAndCompileShaders(const char* vertexShaderSource, const char* fragmentShaderSource)
+void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
 {
-    // Vertex Shader
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    GLuint ShaderObj = glCreateShader(ShaderType);
 
-    // Fragment Shader
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+    if (ShaderObj == 0) {
+        fprintf(stderr, "Error creating shader type %d\n", ShaderType);
+        exit(1);
+    }
 
-    // Shader Program
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    const GLchar* p[1];
+    p[0] = pShaderText;
 
-    // Clean up
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    GLint Lengths[1];
+    Lengths[0] = (GLint)strlen(pShaderText);
 
-    return shaderProgram;
+    glShaderSource(ShaderObj, 1, p, Lengths);
+
+    glCompileShader(ShaderObj);
+
+    GLint success;
+    glGetShaderiv(ShaderObj, GL_COMPILE_STATUS, &success);
+
+    if (!success) {
+        GLchar InfoLog[1024];
+        glGetShaderInfoLog(ShaderObj, 1024, NULL, InfoLog);
+        fprintf(stderr, "Error compiling shader type %d: '%s'\n", ShaderType, InfoLog);
+        exit(1);
+    }
+
+    glAttachShader(ShaderProgram, ShaderObj);
 }
 
 class Object
@@ -74,78 +75,62 @@ class Object
 private:
     GLuint m_vbo;
     GLuint m_ibo;
-    GLuint m_textureID;
-    GLuint m_vao;
     GLuint m_shaderProgram;
-    GLint m_positionAttrib;
-    GLint m_texCoordAttrib;
-    GLint m_textureSamplerUniform;
-    vec3 m_position;
     std::vector<vec3> m_vertices;
     std::vector<vec3> m_indices;
-    std::vector<vec2> m_texCoords;
 
 public:
-    Object(std::vector<vec3> vertices, std::vector<vec3> indices, std::vector<vec2> texCoords, std::vector<uint8_t> imageData, imageType imageType)
-        : m_vertices(vertices), m_indices(indices), m_texCoords(texCoords)
+    Object() {};
+    Object(std::vector<vec3> vertices, std::vector<vec3> indices, std::vector<uint8_t> imageData, imageType imageType)
+        : m_vertices(vertices), m_indices(indices)
     {
-        // Create and bind the VBO
         glGenBuffers(1, &m_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, (m_vertices.size() + m_texCoords.size()) * sizeof(vec3), nullptr, GL_STATIC_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_vertices.size() * sizeof(vec3), m_vertices.data());
-        glBufferSubData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(vec3), m_texCoords.size() * sizeof(vec2), m_texCoords.data());
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
 
-        // Create and bind the IBO
         glGenBuffers(1, &m_ibo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(vec3), m_indices.data(), GL_STATIC_DRAW);
-
-        // Create the texture
-        m_textureID = createTexture(imageData, imageType);
-
-        // Create the VAO
-        glGenVertexArrays(1, &m_vao);
-        glBindVertexArray(m_vao);
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vec3) * m_indices.size(), m_indices.data(), GL_STATIC_DRAW);
 
         // Load and compile the shaders
-        m_shaderProgram = loadAndCompileShaders("shader.vert", "shader.frag");
+        m_shaderProgram = glCreateProgram();
 
-        // Get the attribute and uniform locations
-        m_positionAttrib = glGetAttribLocation(m_shaderProgram, "position");
-        m_texCoordAttrib = glGetAttribLocation(m_shaderProgram, "texCoord");
-        m_textureSamplerUniform = glGetUniformLocation(m_shaderProgram, "textureSampler");
+        if (m_shaderProgram == 0) {
+            fprintf(stderr, "Error creating shader program\n");
+            exit(1);
+        }
+
+        AddShader(m_shaderProgram, vertexShaderSource, GL_VERTEX_SHADER);
+        AddShader(m_shaderProgram, fragmentShaderSource, GL_FRAGMENT_SHADER);
+
+        GLint Success = 0;
+        GLchar ErrorLog[1024] = { 0 };
+
+        glLinkProgram(m_shaderProgram);
+
+        glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &Success);
+
+        glValidateProgram(m_shaderProgram);
+        glGetProgramiv(m_shaderProgram, GL_VALIDATE_STATUS, &Success);
+        if (!Success) {
+            glGetProgramInfoLog(m_shaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
+            fprintf(stderr, "Invalid shader program: '%s'\n", ErrorLog);
+            exit(1);
+        }
     }
 
     void render()
     {
-        // Bind the texture
-        glBindTexture(GL_TEXTURE_2D, m_textureID);
-
-        // Bind the VAO
-        glBindVertexArray(m_vao);
-
-        // Use the shader program
         glUseProgram(m_shaderProgram);
 
-        // Set the texture uniform
-        glUniform1i(m_textureSamplerUniform, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 
-        // Enable vertex attributes
-        glEnableVertexAttribArray(m_positionAttrib);
-        glEnableVertexAttribArray(m_texCoordAttrib);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-        // Draw the object
         glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
 
-        // Disable vertex attributes
-        glDisableVertexAttribArray(m_positionAttrib);
-        glDisableVertexAttribArray(m_texCoordAttrib);
-
-        // Unbind the VAO and shader program
-        glBindVertexArray(0);
-        glUseProgram(0);
+        glDisableVertexAttribArray(0);
     }
 };

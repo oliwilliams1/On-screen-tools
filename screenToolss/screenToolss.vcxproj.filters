@@ -21,16 +21,33 @@
     <ClCompile Include="screenshotTaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="basicObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="screenshot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="screenshotTaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="imageData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="vec2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vec3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basicObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="frag.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="vert.glsl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

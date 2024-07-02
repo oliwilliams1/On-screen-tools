@@ -3,10 +3,9 @@
 
 void ScreenshotTaker::initialize()
 {
-    // Initialize the Python interpreter
     Py_Initialize();
 
-    // Import the ImageGrab module
+    // Import PIL
     PyObject* pName = PyUnicode_FromString("PIL.ImageGrab");
     pModule = PyImport_Import(pName);
     Py_DECREF(pName);
@@ -17,7 +16,7 @@ void ScreenshotTaker::initialize()
         return;
     }
 
-    // Get a reference to the grab() function
+    // Get grab function
     pFunc = PyObject_GetAttrString(pModule, "grab");
     if (pFunc == NULL || !PyCallable_Check(pFunc)) {
         if (PyErr_Occurred()) {
@@ -65,7 +64,7 @@ std::vector<uint8_t> ScreenshotTaker::takeScreenshot()
         return std::vector<uint8_t>();
     }
 
-    // Copy the byte data into a std::vector<uint8_t>
+    // Copy the byte data into something c++ can use
     Py_ssize_t size = PyBytes_Size(pByteData);
     std::vector<uint8_t> imageData(size);
     memcpy(imageData.data(), PyBytes_AsString(pByteData), size);
