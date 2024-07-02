@@ -6,8 +6,9 @@
 
 class basicObject {
 private:
-	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo;
+	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo, timeLocation;
 	size_t vertexCount, indexCount, uvCount;
+	float* time;
 
 public:
 	basicObject(const vec2* vertices, 
@@ -17,7 +18,8 @@ public:
 		const vec2* uvCoords,
 		size_t uvCount,
 		const char* vertexShaderSource, 
-		const char* fragmentShaderSource)
+		const char* fragmentShaderSource,
+		float* time)
 	{
 		// Create and compile vertex shader
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -70,9 +72,13 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, uvbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * uvCount, uvCoords, GL_STATIC_DRAW);
 
+		// Uniforms
+		this->timeLocation = glGetUniformLocation(shaderProgram, "time");
+
 		this->vertexCount = vertexCount;
 		this->indexCount = indexCount;
 		this->uvCount = uvCount;
+		this->time = time;
 	}
 
 	void draw() 
@@ -91,6 +97,9 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, uvbo);
 		glEnableVertexAttribArray(1); // uv
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), (void*)sizeof(vec2));
+
+		// Update uniform variable
+		glUniform1f(timeLocation, *time);
 
 		// Draw geometry
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);

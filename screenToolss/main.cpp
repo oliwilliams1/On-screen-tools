@@ -9,6 +9,9 @@
 
 std::vector<basicObject> basicObjects;
 
+float currentTime = 0.0f;
+float previousTime = 0.0f;
+
 const char* loadShaderSource(const char* filename) {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
@@ -32,9 +35,15 @@ void renderCB()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // Calculate the delta time
+    currentTime = static_cast<float>(glutGet(GLUT_ELAPSED_TIME)) / 1000.0f; // Elapsed time in seconds
+    float deltaTime = currentTime - previousTime;
+    previousTime = currentTime;
+
     for (int i = 0; i < basicObjects.size(); i++) {
-		basicObjects[i].draw();
-	}
+        basicObjects[i].draw();
+    }
+
     glutPostRedisplay();
     glutSwapBuffers();
 }
@@ -62,7 +71,7 @@ void initScene()
 	const char* vertexShaderSource = loadShaderSource("vert.glsl");
 	const char* fragmentShaderSource = loadShaderSource("frag.glsl");
 
-    basicObject rect(rectVertices, 4, rectIndices, 6, rectUVs, 4, vertexShaderSource, fragmentShaderSource);
+    basicObject rect(rectVertices, 4, rectIndices, 6, rectUVs, 4, vertexShaderSource, fragmentShaderSource, &currentTime);
     basicObjects.push_back(rect);
 }
 
