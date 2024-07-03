@@ -4,6 +4,7 @@ in vec2 UV;
 out vec4 fragColour;
 
 uniform float time;
+uniform vec2 mousePos;
 
 // Fractal function
 vec2 julia(vec2 z, float time) {

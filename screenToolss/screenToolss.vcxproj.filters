@@ -52,5 +52,11 @@
     <None Include="frag2.glsl">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="frag3.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="vert3.glsl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

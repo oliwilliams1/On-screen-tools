@@ -9,9 +9,10 @@
 
 class basicObject {
 public:
-	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo, timeLocation;
+	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo, timeLocation, mousePosLocation;
 	size_t vertexCount, indexCount, uvCount;
 	float* time;
+	vec2* mousePos;
 
 	void compileShaders(const char* vertexShaderSource, const char* fragmentShaderSource)
 	{
@@ -73,6 +74,7 @@ public:
 	void setUniforms()
 	{
 		timeLocation = glGetUniformLocation(shaderProgram, "time");
+		mousePosLocation = glGetUniformLocation(shaderProgram, "mousePos");
 	}
 	basicObject(
 		const vec2* vertices, 
@@ -83,7 +85,8 @@ public:
 		size_t uvCount,
 		const char* vertexShaderSource, 
 		const char* fragmentShaderSource,
-		float* time)
+		float* time,
+		vec2* mousePos)
 	{
 		compileShaders(vertexShaderSource, fragmentShaderSource);
 
@@ -91,6 +94,7 @@ public:
 		this->indexCount = indexCount;
 		this->uvCount = uvCount;
 		this->time = time;
+		this->mousePos = mousePos;
 
 		createBuffers(vertices, indices, uvCoords);	
 		
@@ -116,6 +120,7 @@ public:
 
 		// Update uniform variable
 		glUniform1f(timeLocation, *time);
+		glUniform2f(mousePosLocation, mousePos->x, mousePos->y);
 
 		// Draw geometry
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
@@ -160,9 +165,10 @@ public:
 		const char* vertexShaderSource,
 		const char* fragmentShaderSource,
 		float* time,
+		vec2* mousePos,
 		std::vector<uint8_t> imageData,
 		imageType imageType
-	) : basicObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, time)
+	) : basicObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, time, mousePos)
 	{
 		createTexture(imageData, imageType);
 	}
@@ -186,6 +192,7 @@ public:
 
 		// Update uniform variables
 		glUniform1f(timeLocation, *time);
+		glUniform2f(mousePosLocation, mousePos->x, mousePos->y);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glUniform1i(textureLocation, 0); // Bind the texture to texture unit 0
 
