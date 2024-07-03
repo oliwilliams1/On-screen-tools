@@ -8,9 +8,15 @@
 #include "screenshotTaker.h"
 
 std::vector<basicObject> basicObjects;
+std::vector<advancedObject> advancedObjects;
 
 float currentTime = 0.0f;
 float previousTime = 0.0f;
+
+void mousePosCallback(int x, int y)
+{
+    std::cout << x / 800.0f << " " << y / 600.0f << std::endl;
+}
 
 const char* loadShaderSource(const char* filename) {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
@@ -40,6 +46,10 @@ void renderCB()
     float deltaTime = currentTime - previousTime;
     previousTime = currentTime;
 
+    for (int i = 0; i < advancedObjects.size(); i++) {
+        advancedObjects[i].draw();
+    }
+
     for (int i = 0; i < basicObjects.size(); i++) {
         basicObjects[i].draw();
     }
@@ -48,13 +58,13 @@ void renderCB()
     glutSwapBuffers();
 }
 
-void initScene()
+void initScene(std::vector<uint8_t> imageData)
 {
     const vec2 rectVertices[] = {
-    {-1.0f, -1.0f},
-    {-1.0f,  1.0f},
-    { 1.0f,  1.0f},
-    { 1.0f, -1.0f}
+    {-0.5f, -0.5f},
+    {-0.5f,  0.5f},
+    { 0.5f,  0.5f},
+    { 0.5f, -0.5f}
     };
     const GLuint rectIndices[] = {
         0, 1, 2,
@@ -68,14 +78,39 @@ void initScene()
         {1.0f, 0.0f}
     };
 
-	const char* vertexShaderSource = loadShaderSource("vert.glsl");
-	const char* fragmentShaderSource = loadShaderSource("frag.glsl");
+	const char* rectVertexShaderSource = loadShaderSource("vert.glsl");
+	const char* rectFragmentShaderSource = loadShaderSource("frag.glsl");
 
-    basicObject rect(rectVertices, 4, rectIndices, 6, rectUVs, 4, vertexShaderSource, fragmentShaderSource, &currentTime);
+    basicObject rect(rectVertices, 4, rectIndices, 6, rectUVs, 4, rectVertexShaderSource, rectFragmentShaderSource, &currentTime);
     basicObjects.push_back(rect);
+
+    const vec2 fullRectVertices[] = {
+	    {-1.0f, -1.0f},
+	    {-1.0f,  1.0f},
+	    { 1.0f,  1.0f},
+	    { 1.0f, -1.0f}
+	};
+
+	const GLuint fullRectIndices[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+    const vec2 fullRectUVs[] = {
+		{0.0f, 0.0f},
+		{0.0f, 1.0f},
+		{1.0f, 1.0f},
+		{1.0f, 0.0f}
+	};
+
+    const char* fullRectVertexShaderSource = loadShaderSource("vert.glsl");
+    const char* fullRectFragmentShaderSource = loadShaderSource("frag2.glsl");
+
+    advancedObject screenObjects(fullRectVertices, 4, fullRectIndices, 6, fullRectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, &currentTime, imageData, imageType(1920, 1080));
+    advancedObjects.push_back(screenObjects);
 }
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
     ScreenshotTaker screenshotTaker;
     std::vector<uint8_t> imageData = screenshotTaker.takeScreenshot();
@@ -84,10 +119,14 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
     glutInitWindowSize(800, 600);
+    glutInitWindowPosition(0, 0);
     glutCreateWindow("OpenGL Example");
 
+    glutPassiveMotionFunc(mousePosCallback);
+    glutMotionFunc(mousePosCallback);
+
     glewInit();
-    initScene();
+    initScene(imageData);
 
     glutDisplayFunc(renderCB);
     glutMainLoop();
