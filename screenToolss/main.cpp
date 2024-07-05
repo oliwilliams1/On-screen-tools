@@ -2,14 +2,13 @@
 #include <GL/freeglut.h>
 #include <iostream>
 #include <fstream>
-#include "basicObject.h"
-#include "vector"
+#include "objectVariants.h"
+#include <memory>
+#include <vector>
 #include "vec2.h"
 #include "screenshotTaker.h"
 
-std::vector<drawRect> drawRects;
-std::vector<fractalRect> fractalObjects;
-std::vector<advancedObject> advancedObjects;
+std::vector<std::unique_ptr<baseObject>> objects;
 
 float currentTime = 0.0f;
 float previousTime = 0.0f;
@@ -17,12 +16,12 @@ vec2 mousePos;
 bool debug = true;
 vec2 windowSize = (debug) ? vec2(800, 600) : vec2(1920, 1080);
 
-vec2 toNDC(vec2 value)
+static vec2 toNDC(vec2 value)
 {
     return vec2(value.x * 2 - 1, value.y * 2 - 1);
 }
 
-void mousePosCallback(int x, int y)
+static void mousePosCallback(int x, int y)
 {
     // Get mouse coords between 0 to 1
     mousePos = vec2((x / windowSize.x), (y / windowSize.y)); 
@@ -34,7 +33,7 @@ void mousePosCallback(int x, int y)
     mousePos.y += 1.0f;
 }
 
-const char* loadShaderSource(const char* filename) {
+static const char* loadShaderSource(const char* filename) {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
         return nullptr;
@@ -53,7 +52,7 @@ const char* loadShaderSource(const char* filename) {
     return contents;
 }
 
-void renderCB()
+static void renderCB()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -62,23 +61,22 @@ void renderCB()
     float deltaTime = currentTime - previousTime;
     previousTime = currentTime;
 
-    for (int i = 0; i < advancedObjects.size(); i++) {
-        advancedObjects[i].draw();
-    }
-
-    for (int i = 0; i < fractalObjects.size(); i++) {
-		fractalObjects[i].draw();
+    for (const auto& object : objects) {
+        object->draw();
 	}
-    
-    for (int i = 0; i < drawRects.size(); i++) {
-        drawRects[i].draw();
-    }
 
     glutPostRedisplay();
     glutSwapBuffers();
 }
 
-void initScene(std::vector<uint8_t> imageData)
+template <typename T>
+static void addObject(const T& object)
+{
+    static_assert(std::is_base_of_v<baseObject, std::decay_t<T>>, "Object must inherit from basicObject");
+    objects.emplace_back(std::make_unique<std::decay_t<T>>(object));
+}
+
+static void initScene(std::vector<uint8_t> imageData)
 {
     const vec2 rectVertices[] = {
         {-0.5f, -0.5f},
@@ -102,7 +100,7 @@ void initScene(std::vector<uint8_t> imageData)
 	const char* rectFragmentShaderSource = loadShaderSource("frag.glsl");
 
     fractalRect fractalRectObject(rectVertices, 4, rectIndices, 6, rectUVs, 4, rectVertexShaderSource, rectFragmentShaderSource, &currentTime, &mousePos);
-    fractalObjects.push_back(fractalRectObject);
+    addObject(fractalRectObject);
 
     const vec2 fullRectVertices[] = {
 	    {-1.0f, -1.0f},
@@ -115,7 +113,7 @@ void initScene(std::vector<uint8_t> imageData)
     const char* fullRectFragmentShaderSource = loadShaderSource("frag2.glsl");
 
     advancedObject screenObjects(fullRectVertices, 4, rectIndices, 6, rectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, &mousePos, imageData, imageType(1920, 1080));
-    advancedObjects.push_back(screenObjects);
+    addObject(screenObjects);
 
     const vec2 smallRectVertices[] = {
         { 0.0f,  0.0f},
@@ -128,7 +126,7 @@ void initScene(std::vector<uint8_t> imageData)
 	const char* smallRectFragmentShaderSource = loadShaderSource("frag3.glsl");
 
     drawRect smallRect(smallRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource);
-    drawRects.push_back(smallRect);
+    addObject(smallRect);
 }
 
 int main(int argc, char** argv)

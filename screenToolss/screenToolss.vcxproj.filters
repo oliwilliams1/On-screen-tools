@@ -21,7 +21,7 @@
     <ClCompile Include="screenshotTaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="basicObject.cpp">
+    <ClCompile Include="baseObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,7 +38,10 @@
     <ClInclude Include="vec3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="basicObject.h">
+    <ClInclude Include="objectVariants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="baseObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
