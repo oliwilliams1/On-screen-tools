@@ -7,17 +7,31 @@
 #include "vec2.h"
 #include "screenshotTaker.h"
 
-std::vector<basicObject> basicObjects;
+std::vector<drawRect> drawRects;
+std::vector<fractalRect> fractalObjects;
 std::vector<advancedObject> advancedObjects;
 
 float currentTime = 0.0f;
 float previousTime = 0.0f;
 vec2 mousePos;
 bool debug = true;
+vec2 windowSize = (debug) ? vec2(800, 600) : vec2(1920, 1080);
+
+vec2 toNDC(vec2 value)
+{
+    return vec2(value.x * 2 - 1, value.y * 2 - 1);
+}
 
 void mousePosCallback(int x, int y)
 {
-    mousePos = vec2((x / ((debug) ? 800.0f : 1920.0f)) * 2 - 1, (y / ((debug) ? 600.0f : 1080.0f)) * 2 - 1); // Normalize mouse position
+    // Get mouse coords between 0 to 1
+    mousePos = vec2((x / windowSize.x), (y / windowSize.y)); 
+
+    // To NDC
+	mousePos = toNDC(mousePos);
+
+    // Idk why it works but it does
+    mousePos.y += 1.0f;
 }
 
 const char* loadShaderSource(const char* filename) {
@@ -52,8 +66,12 @@ void renderCB()
         advancedObjects[i].draw();
     }
 
-    for (int i = 0; i < basicObjects.size(); i++) {
-        basicObjects[i].draw();
+    for (int i = 0; i < fractalObjects.size(); i++) {
+		fractalObjects[i].draw();
+	}
+    
+    for (int i = 0; i < drawRects.size(); i++) {
+        drawRects[i].draw();
     }
 
     glutPostRedisplay();
@@ -83,8 +101,8 @@ void initScene(std::vector<uint8_t> imageData)
 	const char* rectVertexShaderSource = loadShaderSource("vert.glsl");
 	const char* rectFragmentShaderSource = loadShaderSource("frag.glsl");
 
-    basicObject rect(rectVertices, 4, rectIndices, 6, rectUVs, 4, rectVertexShaderSource, rectFragmentShaderSource, &currentTime, &mousePos);
-    basicObjects.push_back(rect);
+    fractalRect fractalRectObject(rectVertices, 4, rectIndices, 6, rectUVs, 4, rectVertexShaderSource, rectFragmentShaderSource, &currentTime, &mousePos);
+    fractalObjects.push_back(fractalRectObject);
 
     const vec2 fullRectVertices[] = {
 	    {-1.0f, -1.0f},
@@ -96,7 +114,7 @@ void initScene(std::vector<uint8_t> imageData)
     const char* fullRectVertexShaderSource = loadShaderSource("vert.glsl");
     const char* fullRectFragmentShaderSource = loadShaderSource("frag2.glsl");
 
-    advancedObject screenObjects(fullRectVertices, 4, rectIndices, 6, rectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, &currentTime, &mousePos, imageData, imageType(1920, 1080));
+    advancedObject screenObjects(fullRectVertices, 4, rectIndices, 6, rectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, &mousePos, imageData, imageType(1920, 1080));
     advancedObjects.push_back(screenObjects);
 
     const vec2 smallRectVertices[] = {
@@ -106,11 +124,11 @@ void initScene(std::vector<uint8_t> imageData)
 		{ 0.1f,  0.0f}
     };
 
-	const char* smallRectVertexShaderSource = loadShaderSource("vert3.glsl");
+	const char* smallRectVertexShaderSource = loadShaderSource("vert.glsl");
 	const char* smallRectFragmentShaderSource = loadShaderSource("frag3.glsl");
 
-    basicObject smallRect(smallRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource, &currentTime, &mousePos);
-	basicObjects.push_back(smallRect);
+    drawRect smallRect(smallRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource);
+    drawRects.push_back(smallRect);
 }
 
 int main(int argc, char** argv)
@@ -126,7 +144,7 @@ int main(int argc, char** argv)
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_BORDERLESS);
     }
 
-    glutInitWindowSize((debug) ? 800.0f : 1920.0f, (debug) ? 600.0f : 1080.0f);
+    glutInitWindowSize(windowSize.x, windowSize.y);
     glutInitWindowPosition(0, 0);
     glutCreateWindow("OpenGL Example");
 

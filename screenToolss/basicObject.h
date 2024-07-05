@@ -9,9 +9,8 @@
 
 class basicObject {
 public:
-	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo, timeLocation, mousePosLocation;
+	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo, mousePosLocation;
 	size_t vertexCount, indexCount, uvCount;
-	float* time;
 	vec2* mousePos;
 
 	void compileShaders(const char* vertexShaderSource, const char* fragmentShaderSource)
@@ -73,7 +72,6 @@ public:
 
 	void setUniforms()
 	{
-		timeLocation = glGetUniformLocation(shaderProgram, "time");
 		mousePosLocation = glGetUniformLocation(shaderProgram, "mousePos");
 	}
 	basicObject(
@@ -85,7 +83,6 @@ public:
 		size_t uvCount,
 		const char* vertexShaderSource, 
 		const char* fragmentShaderSource,
-		float* time,
 		vec2* mousePos)
 	{
 		compileShaders(vertexShaderSource, fragmentShaderSource);
@@ -93,13 +90,14 @@ public:
 		this->vertexCount = vertexCount;
 		this->indexCount = indexCount;
 		this->uvCount = uvCount;
-		this->time = time;
 		this->mousePos = mousePos;
 
 		createBuffers(vertices, indices, uvCoords);	
 		
 		setUniforms();
 	}
+
+	virtual void updateUniforms() = 0;
 
 	void draw() 
 	{
@@ -118,9 +116,7 @@ public:
 		glEnableVertexAttribArray(1); // uv
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), (void*)sizeof(vec2));
 
-		// Update uniform variable
-		glUniform1f(timeLocation, *time);
-		glUniform2f(mousePosLocation, mousePos->x, mousePos->y);
+		updateUniforms();
 
 		// Draw geometry
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
@@ -164,43 +160,74 @@ public:
 		size_t uvCount,
 		const char* vertexShaderSource,
 		const char* fragmentShaderSource,
-		float* time,
 		vec2* mousePos,
 		std::vector<uint8_t> imageData,
 		imageType imageType
-	) : basicObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, time, mousePos)
+	) : basicObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, mousePos)
 	{
 		createTexture(imageData, imageType);
 	}
 
-	void draw()
+	void updateUniforms()
 	{
-		glUseProgram(shaderProgram);
-
-		// Bind VBO and IBO
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-
-		// Enable the vertex attribute
-		glEnableVertexAttribArray(0); // position
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), 0);
-
-		// Bind UV buffer and enable its attribute
-		glBindBuffer(GL_ARRAY_BUFFER, uvbo);
-		glEnableVertexAttribArray(1); // uv
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), (void*)sizeof(vec2));
-
 		// Update uniform variables
-		glUniform1f(timeLocation, *time);
 		glUniform2f(mousePosLocation, mousePos->x, mousePos->y);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glUniform1i(textureLocation, 0); // Bind the texture to texture unit 0
-
-		// Draw geometry
-		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-
-		// Disable vertex attributes
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
 	}
+};
+
+class fractalRect : public basicObject
+{
+private:
+	GLuint timeLocation;
+	float* time;
+
+	void setUniforms()
+	{
+		// Bind the time uniform variable
+		timeLocation = glGetUniformLocation(shaderProgram, "time");
+	}
+
+	void basicObject::updateUniforms() 
+	{
+		// Update uniform variables
+		glUniform1f(timeLocation, *time);
+	}
+
+public:
+
+	fractalRect(
+		const vec2* vertices,
+		size_t vertexCount,
+		const GLuint* indices,
+		size_t indexCount,
+		const vec2* uvCoords,
+		size_t uvCount,
+		const char* vertexShaderSource,
+		const char* fragmentShaderSource,
+		float* time,
+		vec2* mousePos
+	) : basicObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, mousePos)
+	{
+		this->time = time;
+		setUniforms();
+	}
+};
+
+class drawRect : public basicObject
+{
+private:
+	void basicObject::updateUniforms() {};
+public:
+	drawRect(
+		const vec2* vertices,
+		size_t vertexCount,
+		const GLuint* indices,
+		size_t indexCount,
+		const vec2* uvCoords,
+		size_t uvCount,
+		const char* vertexShaderSource,
+		const char* fragmentShaderSource
+	) : basicObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, nullptr) {};
 };
