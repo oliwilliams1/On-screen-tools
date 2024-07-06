@@ -152,7 +152,7 @@
     <None Include="frag2.glsl" />
     <None Include="frag3.glsl" />
     <None Include="vert.glsl" />
-    <None Include="vert3.glsl" />
+    <None Include="vert2.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

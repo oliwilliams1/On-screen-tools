@@ -8,9 +8,8 @@
 
 class baseObject {
 public:
-	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo, mousePosLocation;
+	GLuint vertexShader, fragmentShader, shaderProgram, vbo, ibo, uvbo;
 	size_t vertexCount, indexCount, uvCount;
-	vec2* mousePos;
 
 	void compileShaders(const char* vertexShaderSource, const char* fragmentShaderSource);
 
@@ -26,8 +25,7 @@ public:
 		const vec2* uvCoords,
 		size_t uvCount,
 		const char* vertexShaderSource,
-		const char* fragmentShaderSource,
-		vec2* mousePos);
+		const char* fragmentShaderSource);
 
 	virtual void updateUniforms() = 0;
 

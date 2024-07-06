@@ -24,14 +24,14 @@ vec3 colourToPallet(float x) {
     vec3 color = vec3(0.0);
 
     // Define the color palette
-    vec3 palette[6] = {
+    vec3 palette[] = vec3[](
         vec3(0.0, 0.0, 0.2),  // Deep blue
         vec3(0.0, 0.2, 0.4),  // Teal
         vec3(0.2, 0.4, 0.6),  // Light blue
         vec3(0.4, 0.6, 0.8),  // Pale blue
         vec3(0.6, 0.8, 1.0),  // White
         vec3(1.0, 1.0, 1.0)   // Bright white
-    };
+    );
 
     // Map the input value x to the color palette
     x = clamp(x, 0.0, 1.0);

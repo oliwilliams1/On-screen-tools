@@ -34,10 +34,9 @@ public:
 		size_t uvCount,
 		const char* vertexShaderSource,
 		const char* fragmentShaderSource,
-		vec2* mousePos,
 		std::vector<uint8_t> imageData,
 		imageType imageType
-	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, mousePos)
+	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource)
 	{
 		createTexture(imageData, imageType);
 	}
@@ -45,7 +44,6 @@ public:
 	void updateUniforms()
 	{
 		// Update uniform variables
-		glUniform2f(mousePosLocation, mousePos->x, mousePos->y);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glUniform1i(textureLocation, 0); // Bind the texture to texture unit 0
 	}
@@ -80,9 +78,8 @@ public:
 		size_t uvCount,
 		const char* vertexShaderSource,
 		const char* fragmentShaderSource,
-		float* time,
-		vec2* mousePos
-	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, mousePos)
+		float* time
+	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource)
 	{
 		this->time = time;
 		setUniforms();
@@ -92,7 +89,22 @@ public:
 class drawRect : public baseObject
 {
 private:
-	void baseObject::updateUniforms() {};
+	GLuint mousePosLocation, aspectRatioLocation;
+	vec2* mousePos;
+	float* aspectRatio;
+
+	void setUniforms()
+	{
+		mousePosLocation = glGetUniformLocation(shaderProgram, "mousePos");
+		aspectRatioLocation = glGetUniformLocation(shaderProgram, "aspectRatio");
+	}
+
+	void baseObject::updateUniforms() 
+	{
+		glUniform1f(aspectRatioLocation, *aspectRatio);
+		glUniform2f(mousePosLocation, mousePos->x, mousePos->y);
+	};
+
 public:
 	drawRect(
 		const vec2* vertices,
@@ -102,6 +114,13 @@ public:
 		const vec2* uvCoords,
 		size_t uvCount,
 		const char* vertexShaderSource,
-		const char* fragmentShaderSource
-	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource, nullptr) {};
+		const char* fragmentShaderSource,
+		vec2* mousePos,
+		float* aspectRatio
+	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource) 
+	{
+		this->mousePos = mousePos;
+		this->aspectRatio = aspectRatio;
+		setUniforms();
+	};
 };

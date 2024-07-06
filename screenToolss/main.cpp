@@ -15,6 +15,7 @@ float previousTime = 0.0f;
 vec2 mousePos;
 bool debug = true;
 vec2 windowSize = (debug) ? vec2(800, 600) : vec2(1920, 1080);
+float aspectRatio = windowSize.x / windowSize.y;
 
 static vec2 toNDC(vec2 value)
 {
@@ -99,8 +100,7 @@ static void initScene(std::vector<uint8_t> imageData)
 	const char* rectVertexShaderSource = loadShaderSource("vert.glsl");
 	const char* rectFragmentShaderSource = loadShaderSource("frag.glsl");
 
-    fractalRect fractalRectObject(rectVertices, 4, rectIndices, 6, rectUVs, 4, rectVertexShaderSource, rectFragmentShaderSource, &currentTime, &mousePos);
-    addObject(fractalRectObject);
+    
 
     const vec2 fullRectVertices[] = {
 	    {-1.0f, -1.0f},
@@ -112,8 +112,11 @@ static void initScene(std::vector<uint8_t> imageData)
     const char* fullRectVertexShaderSource = loadShaderSource("vert.glsl");
     const char* fullRectFragmentShaderSource = loadShaderSource("frag2.glsl");
 
-    advancedObject screenObjects(fullRectVertices, 4, rectIndices, 6, rectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, &mousePos, imageData, imageType(1920, 1080));
+    advancedObject screenObjects(fullRectVertices, 4, rectIndices, 6, rectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, imageData, imageType(1920, 1080));
     addObject(screenObjects);
+
+    fractalRect fractalRectObject(rectVertices, 4, rectIndices, 6, rectUVs, 4, rectVertexShaderSource, rectFragmentShaderSource, &currentTime);
+    addObject(fractalRectObject);
 
     const vec2 smallRectVertices[] = {
         { 0.0f,  0.0f},
@@ -122,10 +125,17 @@ static void initScene(std::vector<uint8_t> imageData)
 		{ 0.1f,  0.0f}
     };
 
-	const char* smallRectVertexShaderSource = loadShaderSource("vert.glsl");
+	const char* smallRectVertexShaderSource = loadShaderSource("vert2.glsl");
 	const char* smallRectFragmentShaderSource = loadShaderSource("frag3.glsl");
 
-    drawRect smallRect(smallRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource);
+    const vec2 drawRectVertices[] = {
+        { 0.0f,  0.0f},
+        { 0.0f, -1.0f},
+        { 1.0f, -1.0f},
+        { 1.0f,  0.0f}
+    };
+
+    drawRect smallRect(drawRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource, &mousePos, &aspectRatio);
     addObject(smallRect);
 }
 

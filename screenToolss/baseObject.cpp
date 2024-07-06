@@ -57,10 +57,7 @@ void baseObject::createBuffers(const vec2* vertices, const GLuint* indices, cons
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * uvCount, uvCoords, GL_STATIC_DRAW);
 }
 
-void baseObject::setUniforms()
-{
-	mousePosLocation = glGetUniformLocation(shaderProgram, "mousePos");
-}
+void baseObject::setUniforms() {};
 
 baseObject::baseObject(const vec2* vertices,
 	size_t vertexCount,
@@ -69,15 +66,13 @@ baseObject::baseObject(const vec2* vertices,
 	const vec2* uvCoords,
 	size_t uvCount,
 	const char* vertexShaderSource,
-	const char* fragmentShaderSource,
-	vec2* mousePos)
+	const char* fragmentShaderSource)
 {
 	compileShaders(vertexShaderSource, fragmentShaderSource);
 
 	this->vertexCount = vertexCount;
 	this->indexCount = indexCount;
 	this->uvCount = uvCount;
-	this->mousePos = mousePos;
 
 	createBuffers(vertices, indices, uvCoords);
 
