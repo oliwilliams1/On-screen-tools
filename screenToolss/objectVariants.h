@@ -89,20 +89,21 @@ public:
 class drawRect : public baseObject
 {
 private:
-	GLuint mousePosLocation, aspectRatioLocation;
+	GLuint mousePosLocation, aspectRatioLocation, widthHeightLocation;
 	vec2* mousePos;
 	float* aspectRatio;
+	vec2* widthHeight;
 
 	void setUniforms()
 	{
 		mousePosLocation = glGetUniformLocation(shaderProgram, "mousePos");
-		aspectRatioLocation = glGetUniformLocation(shaderProgram, "aspectRatio");
+		widthHeightLocation = glGetUniformLocation(shaderProgram, "widthHeight");
 	}
 
 	void baseObject::updateUniforms() 
 	{
-		glUniform1f(aspectRatioLocation, *aspectRatio);
 		glUniform2f(mousePosLocation, mousePos->x, mousePos->y);
+		glUniform2f(widthHeightLocation, widthHeight->x, widthHeight->y);
 	};
 
 public:
@@ -116,11 +117,11 @@ public:
 		const char* vertexShaderSource,
 		const char* fragmentShaderSource,
 		vec2* mousePos,
-		float* aspectRatio
+		vec2* widthHeight
 	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource) 
 	{
 		this->mousePos = mousePos;
-		this->aspectRatio = aspectRatio;
+		this->widthHeight = widthHeight;
 		setUniforms();
 	};
 };

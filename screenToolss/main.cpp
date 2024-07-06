@@ -12,10 +12,14 @@ std::vector<std::unique_ptr<baseObject>> objects;
 
 float currentTime = 0.0f;
 float previousTime = 0.0f;
-vec2 mousePos;
 bool debug = true;
 vec2 windowSize = (debug) ? vec2(800, 600) : vec2(1920, 1080);
 float aspectRatio = windowSize.x / windowSize.y;
+vec2 firstCorner;
+vec2 secondCorner;
+vec2 mousePos;
+bool mouseDown;
+vec2 widthHeight = vec2(windowSize.x/windowSize.x, windowSize.y/windowSize.y);
 
 static vec2 toNDC(vec2 value)
 {
@@ -62,12 +66,29 @@ static void renderCB()
     float deltaTime = currentTime - previousTime;
     previousTime = currentTime;
 
+    if (mouseDown) {
+        secondCorner = mousePos - firstCorner;
+    }
+
     for (const auto& object : objects) {
         object->draw();
 	}
 
     glutPostRedisplay();
     glutSwapBuffers();
+}
+
+static void mouseCB(int button, int state, int x, int y)
+{
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        mouseDown = true;
+        firstCorner = mousePos;
+        secondCorner = vec2(0);
+    }
+
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+        mouseDown = false;
+    }
 }
 
 template <typename T>
@@ -99,8 +120,6 @@ static void initScene(std::vector<uint8_t> imageData)
 
 	const char* rectVertexShaderSource = loadShaderSource("vert.glsl");
 	const char* rectFragmentShaderSource = loadShaderSource("frag.glsl");
-
-    
 
     const vec2 fullRectVertices[] = {
 	    {-1.0f, -1.0f},
@@ -135,7 +154,7 @@ static void initScene(std::vector<uint8_t> imageData)
         { 1.0f,  0.0f}
     };
 
-    drawRect smallRect(drawRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource, &mousePos, &aspectRatio);
+    drawRect smallRect(drawRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource, &firstCorner, &secondCorner);
     addObject(smallRect);
 }
 
@@ -163,6 +182,7 @@ int main(int argc, char** argv)
     initScene(imageData);
 
     glutDisplayFunc(renderCB);
+    glutMouseFunc(mouseCB);
     glutMainLoop();
     return 0;
 }
