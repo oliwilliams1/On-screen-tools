@@ -12,7 +12,7 @@ std::vector<std::unique_ptr<baseObject>> objects;
 
 float currentTime = 0.0f;
 float previousTime = 0.0f;
-bool debug = true;
+bool debug = false;
 vec2 windowSize = (debug) ? vec2(800, 600) : vec2(1920, 1080);
 float aspectRatio = windowSize.x / windowSize.y;
 vec2 firstCorner;
@@ -179,6 +179,8 @@ int main(int argc, char** argv)
     glutMotionFunc(mousePosCallback);
 
     glewInit();
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     initScene(imageData);
 
     glutDisplayFunc(renderCB);

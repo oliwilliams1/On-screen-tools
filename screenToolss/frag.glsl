@@ -6,54 +6,59 @@ out vec4 fragColour;
 uniform float time;
 uniform vec2 mousePos;
 
-// Fractal function
-vec2 julia(vec2 z, float time) {
-    vec2 c = vec2(cos(time), sin(time)); // Constant c value that changes over time
-    for (int i = 0; i < 50; i++) {
-        float x = z.x * z.x - z.y * z.y + c.x;
-        float y = 2.0 * z.x * z.y + c.y;
-        z = vec2(x, y);
-        if (length(z) > 2.0) {
-            return vec2(float(i) / 50.0, 0.0);
+vec3 palette(float d){
+	return mix(vec3(0.2,0.7,0.9),vec3(1.,0.,1.),d);
+}
+
+vec2 rotate(vec2 p,float a){
+	float c = cos(a);
+    float s = sin(a);
+    return p*mat2(c,s,-s,c);
+}
+
+float map(vec3 p){
+    for( int i = 0; i<8; ++i){
+        float t = time*0.2;
+        p.xz =rotate(p.xz,t);
+        p.xy =rotate(p.xy,t*1.89);
+        p.xz = abs(p.xz);
+        p.xz-=.5;
+	}
+	return dot(sign(p),p)/5.;
+}
+
+vec4 rm (vec3 ro, vec3 rd){
+    float t = 0.;
+    vec3 col = vec3(0.);
+    float d;
+    for(float i =0.; i<64.; i++){
+		vec3 p = ro + rd*t;
+        d = map(p)*.5;
+        if(d<0.02){
+            break;
         }
+        if(d>100.){
+        	break;
+        }
+        col+=palette(length(p)*.1)/(400.*(d));
+        t+=d;
     }
-    return vec2(1.0, 0.0);
+    return vec4(col,1./(d*100.));
 }
-
-vec3 colourToPallet(float x) {
-    vec3 color = vec3(0.0);
-
-    // Define the color palette
-    vec3 palette[] = vec3[](
-        vec3(0.0, 0.0, 0.2),  // Deep blue
-        vec3(0.0, 0.2, 0.4),  // Teal
-        vec3(0.2, 0.4, 0.6),  // Light blue
-        vec3(0.4, 0.6, 0.8),  // Pale blue
-        vec3(0.6, 0.8, 1.0),  // White
-        vec3(1.0, 1.0, 1.0)   // Bright white
-    );
-
-    // Map the input value x to the color palette
-    x = clamp(x, 0.0, 1.0);
-    int index = int(x * (float(6) - 1.0));
-    color = mix(palette[index], palette[index + 1], fract(x * (float(6) - 1.0)));
-
-    return color;
-}
-
-void main() {
-    // Fractal parameters
-    const int iterations = 100;
-    const float scale = 1.55;
-    const vec2 offset = vec2(-0.75, 0.0);
-    float t = time * 5.0; // Increase the speed
-    vec2 uv2 = vec2(
-        sin(UV.x * 20.0 + tan(time)),
-        cos(UV.y * 20.0 + sin(t))
-    );
-    // Calculate fractal
-    vec2 result = julia(uv2, time);
-
-    // Colorize the fractal
-    fragColour = vec4(colourToPallet(result.x), 1.0);
+void main()
+{
+    vec2 uv = UV - 0.5;
+	vec3 ro = vec3(0.,0.,-50.);
+    ro.xz = rotate(ro.xz,time);
+    vec3 cf = normalize(-ro);
+    vec3 cs = normalize(cross(cf,vec3(0.,1.,0.)));
+    vec3 cu = normalize(cross(cf,cs));
+    
+    vec3 uuv = ro+cf*3. + uv.x*cs + uv.y*cu;
+    
+    vec3 rd = normalize(uuv-ro);
+    
+    vec4 col = rm(ro,rd);
+    
+    fragColour = col;
 }
