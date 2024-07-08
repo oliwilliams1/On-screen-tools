@@ -11,6 +11,7 @@
 #include "objectVariants.h"
 #include "vec2.h"
 #include "screenshotTaker.h"
+#include "ocrHandler.h"
 
 std::vector<std::unique_ptr<baseObject>> objects;
 
@@ -191,36 +192,8 @@ int main(int argc, char** argv)
     ScreenshotTaker screenshotTaker;
     std::vector<uint8_t> imageData = screenshotTaker.takeScreenshot();
 
-    // Convert the vector to an OpenCV Mat
-    int rows = 1080;
-    int cols = 1920;
-    int channels = 3;  // RGB image
-    cv::Mat image(rows, cols, CV_8UC3, imageData.data());
-
-    // Manually swap the color channels
-    for (int i = 0; i < image.total() * image.channels(); i += image.channels()) {
-        std::swap(image.data[i], image.data[i + 2]);
-    }
-
-    // Initialize Tesseract
-    tesseract::TessBaseAPI* api = new tesseract::TessBaseAPI();
-    if (api->Init(nullptr, "eng")) {
-        std::cerr << "Could not initialize Tesseract." << std::endl;
-        return 1;
-    }
-
-    // Set the image for the Tesseract API
-    api->SetImage(image.data, image.cols, image.rows, image.channels(), static_cast<int>(image.step));
-
-    // Perform OCR
-    char* text = api->GetUTF8Text();
-    std::string recognizedText(text);
-
-    // Clean up
-    api->End();
-    delete api;
-
-    std::cout << "Recognized text: " << recognizedText << std::endl;
+    ocrHandler ocrHandler;
+	ocrHandler.ocrImageData(&imageData);
 
     return 0;
 }

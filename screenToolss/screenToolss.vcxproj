@@ -137,12 +137,14 @@
   <ItemGroup>
     <ClCompile Include="baseObject.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ocrHandler.cpp" />
     <ClCompile Include="screenshotTaker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="baseObject.h" />
     <ClInclude Include="objectVariants.h" />
     <ClInclude Include="imageData.h" />
+    <ClInclude Include="ocrHandler.h" />
     <ClInclude Include="screenshotTaker.h" />
     <ClInclude Include="vec2.h" />
     <ClInclude Include="vec3.h" />
