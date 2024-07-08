@@ -1,10 +1,14 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#include <tesseract/baseapi.h>
+#include <opencv2/opencv.hpp>
+
 #include <iostream>
-#include <fstream>
-#include "objectVariants.h"
 #include <memory>
+#include <fstream>
 #include <vector>
+
+#include "objectVariants.h"
 #include "vec2.h"
 #include "screenshotTaker.h"
 
@@ -160,12 +164,9 @@ static void initScene(std::vector<uint8_t> imageData)
 
 int main(int argc, char** argv)
 {
-    ScreenshotTaker screenshotTaker;
-    std::vector<uint8_t> imageData = screenshotTaker.takeScreenshot();
-
-    glutInit(&argc, argv);
+    /*glutInit(&argc, argv);
     if (debug) {
-		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     }
     else {
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_BORDERLESS);
@@ -179,12 +180,47 @@ int main(int argc, char** argv)
     glutMotionFunc(mousePosCallback);
 
     glewInit();
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     initScene(imageData);
 
     glutDisplayFunc(renderCB);
     glutMouseFunc(mouseCB);
-    glutMainLoop();
+    glutMainLoop();*/
+
+    ScreenshotTaker screenshotTaker;
+    std::vector<uint8_t> imageData = screenshotTaker.takeScreenshot();
+
+    // Convert the vector to an OpenCV Mat
+    int rows = 1080;
+    int cols = 1920;
+    int channels = 3;  // RGB image
+    cv::Mat image(rows, cols, CV_8UC3, imageData.data());
+
+    // Manually swap the color channels
+    for (int i = 0; i < image.total() * image.channels(); i += image.channels()) {
+        std::swap(image.data[i], image.data[i + 2]);
+    }
+
+    // Initialize Tesseract
+    tesseract::TessBaseAPI* api = new tesseract::TessBaseAPI();
+    if (api->Init(nullptr, "eng")) {
+        std::cerr << "Could not initialize Tesseract." << std::endl;
+        return 1;
+    }
+
+    // Set the image for the Tesseract API
+    api->SetImage(image.data, image.cols, image.rows, image.channels(), static_cast<int>(image.step));
+
+    // Perform OCR
+    char* text = api->GetUTF8Text();
+    std::string recognizedText(text);
+
+    // Clean up
+    api->End();
+    delete api;
+
+    std::cout << "Recognized text: " << recognizedText << std::endl;
+
     return 0;
 }
