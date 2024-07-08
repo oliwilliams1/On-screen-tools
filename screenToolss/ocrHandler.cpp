@@ -38,8 +38,5 @@ void ocrHandler::ocrImageData(std::vector<uint8_t>* imageData)
 	
 	std::cout << "Recognized text: " << text << std::endl;
 
-	cv::imshow("Image", image);
-	cv::waitKey(0);
-
 	delete text;
 }
