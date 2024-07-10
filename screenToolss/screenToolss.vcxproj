@@ -135,12 +135,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="App.cpp" />
     <ClCompile Include="baseObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ocrHandler.cpp" />
     <ClCompile Include="screenshotTaker.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="App.h" />
     <ClInclude Include="baseObject.h" />
     <ClInclude Include="objectVariants.h" />
     <ClInclude Include="imageData.h" />
