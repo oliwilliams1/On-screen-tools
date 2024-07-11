@@ -13,6 +13,7 @@
 #include "vec2.h"
 #include "screenshotTaker.h"
 #include "ocrHandler.h"
+#include "SelectionBox.h"
 
 class App
 {
@@ -27,10 +28,13 @@ private:
 	// Dynamic object array
 	std::vector<std::unique_ptr<baseObject>> objects;
 
+	// Selection box handler
+	SelectionBox* selectionBox;
+
 	// Member variables
 	float currentTime = 0.0f;
 	float previousTime = 0.0f;
-	bool debug = false;
+	bool debug = true;
 	vec2 windowSize = (debug) ? vec2(800, 600) : vec2(1920, 1080);
 	float aspectRatio = windowSize.x / windowSize.y;
 	vec2 firstCorner;

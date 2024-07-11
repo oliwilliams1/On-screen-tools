@@ -46,9 +46,7 @@ void App::renderCB()
     float deltaTime = instance->currentTime - instance->previousTime;
     instance->previousTime = instance->currentTime;
 
-    if (instance->mouseDown) {
-        instance->secondCorner = instance->mousePos - instance->firstCorner;
-    }
+    instance->selectionBox->update();
 
     for (const auto& object : instance->objects) {
         object->draw();
@@ -62,8 +60,6 @@ void App::mouseCB(int button, int state, int x, int y)
 {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         instance->mouseDown = true;
-        instance->firstCorner = instance->mousePos;
-        instance->secondCorner = vec2(0);
     }
 
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
@@ -134,8 +130,10 @@ void App::initScene(std::vector<uint8_t> imageData)
         { 1.0f,  0.0f}
     };
 
-    drawRect smallRect(drawRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource, &firstCorner, &secondCorner);
+    drawRect smallRect(drawRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource);
     addObject(smallRect);
+
+    selectionBox = new SelectionBox(&smallRect, &mousePos, &mouseDown);
 }
 
 App::App(int* argc, char** argv)
