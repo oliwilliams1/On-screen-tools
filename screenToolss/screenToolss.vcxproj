@@ -140,7 +140,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ocrHandler.cpp" />
     <ClCompile Include="screenshotTaker.cpp" />
-    <ClCompile Include="SelectionBox.cpp" />
+    <ClCompile Include="SelectionWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -149,7 +149,7 @@
     <ClInclude Include="imageData.h" />
     <ClInclude Include="ocrHandler.h" />
     <ClInclude Include="screenshotTaker.h" />
-    <ClInclude Include="SelectionBox.h" />
+    <ClInclude Include="SelectionWindow.h" />
     <ClInclude Include="vec2.h" />
     <ClInclude Include="vec3.h" />
   </ItemGroup>

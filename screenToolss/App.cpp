@@ -46,7 +46,7 @@ void App::renderCB()
     float deltaTime = instance->currentTime - instance->previousTime;
     instance->previousTime = instance->currentTime;
 
-    instance->selectionBox->update();
+    instance->selectionWindow.update();
 
     for (const auto& object : instance->objects) {
         object->draw();
@@ -59,11 +59,11 @@ void App::renderCB()
 void App::mouseCB(int button, int state, int x, int y)
 {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        instance->mouseDown = true;
+        instance->selectionWindow.mouseDown();
     }
 
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-        instance->mouseDown = false;
+        instance->selectionWindow.mouseUp();
     }
 }
 
@@ -133,11 +133,12 @@ void App::initScene(std::vector<uint8_t> imageData)
     drawRect smallRect(drawRectVertices, 4, rectIndices, 6, rectUVs, 4, smallRectVertexShaderSource, smallRectFragmentShaderSource);
     addObject(smallRect);
 
-    selectionBox = new SelectionBox(&smallRect, &mousePos, &mouseDown);
+    auto& storedSmallRect = *dynamic_cast<drawRect*>(objects.back().get());
+    selectionWindow = SelectionWindow(&storedSmallRect, &mousePos);
 }
 
 App::App(int* argc, char** argv)
-{
+{   
     if (instance == nullptr) {
         // Make the instance this so variables in this class can be acssessed from static callbacks
         instance = this;

@@ -13,7 +13,7 @@
 #include "vec2.h"
 #include "screenshotTaker.h"
 #include "ocrHandler.h"
-#include "SelectionBox.h"
+#include "SelectionWindow.h"
 
 class App
 {
@@ -28,8 +28,8 @@ private:
 	// Dynamic object array
 	std::vector<std::unique_ptr<baseObject>> objects;
 
-	// Selection box handler
-	SelectionBox* selectionBox;
+	// Selection window handler
+	SelectionWindow selectionWindow;
 
 	// Member variables
 	float currentTime = 0.0f;

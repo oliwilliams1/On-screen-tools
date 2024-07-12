@@ -100,19 +100,16 @@ private:
 
 	void baseObject::updateUniforms() 
 	{
-		if (cornerOne == nullptr || cornerTwo == nullptr) {
-			glUniform2f(mousePosLocation, 0.0f, 0.0f);
-			glUniform2f(widthHeightLocation, 0.0f, 0.0f);
-		}
-		else {
-			glUniform2f(mousePosLocation, cornerOne->x, cornerOne->y);
-			glUniform2f(widthHeightLocation, cornerTwo->x, cornerTwo->y);
-		}
+		std::cout << "Corner 1: "; cornerOne.print();
+		std::cout << "Corner 2: "; cornerTwo.print();
+		std::cout << std::endl;
+		glUniform2f(mousePosLocation, cornerOne.x, cornerOne.y);
+		glUniform2f(widthHeightLocation, cornerTwo.x, cornerTwo.y);
 	};
 
 public:
-	vec2* cornerOne = nullptr;
-	vec2* cornerTwo = nullptr;
+	vec2 cornerOne = vec2(0);
+	vec2 cornerTwo = vec2(0);
 
 	drawRect(
 		const vec2* vertices,
