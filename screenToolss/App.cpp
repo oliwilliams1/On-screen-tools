@@ -22,7 +22,7 @@ const char* App::loadShaderSource(const char* filename) {
 }
 void App::mousePosCallback(int x, int y)
 {
-    instance->mousePos = vec2(x, y);
+    instance->mousePos = vec2((float)x, (float)y);
 }
 
 void App::renderCB()
@@ -62,7 +62,7 @@ void App::addObject(const T& object)
     objects.emplace_back(std::make_unique<std::decay_t<T>>(object));
 }
 
-void App::initScene(std::vector<uint8_t> imageData)
+void App::initScene(snoutImage image)
 {
     const vec2 rectVertices[] = {
         {-0.5f, -0.5f},
@@ -95,7 +95,7 @@ void App::initScene(std::vector<uint8_t> imageData)
     const char* fullRectVertexShaderSource = loadShaderSource("vert.glsl");
     const char* fullRectFragmentShaderSource = loadShaderSource("frag2.glsl");
 
-    advancedObject screenObjects(fullRectVertices, 4, rectIndices, 6, rectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, imageData, imageType(1920, 1080));
+    advancedObject screenObjects(fullRectVertices, 4, rectIndices, 6, rectUVs, 4, fullRectVertexShaderSource, fullRectFragmentShaderSource, image);
     addObject(screenObjects);
 
     fractalRect fractalRectObject(rectVertices, 4, rectIndices, 6, rectUVs, 4, rectVertexShaderSource, rectFragmentShaderSource, &currentTime);
@@ -134,6 +134,8 @@ App::App(int* argc, char** argv)
     ScreenshotTaker screenshotTaker;
     std::vector<uint8_t> imageData = screenshotTaker.takeScreenshot();
 
+    snoutImage image = snoutImage(1920, 1080, 3, &imageData);
+
     glutInit(argc, argv);
     if (debug) {
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -142,7 +144,7 @@ App::App(int* argc, char** argv)
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_BORDERLESS);
     }
 
-    glutInitWindowSize(windowSize.x, windowSize.y);
+    glutInitWindowSize((int)windowSize.x, (int)windowSize.y);
     glutInitWindowPosition(0, 0);
     glutCreateWindow("OpenGL Example");
 
@@ -152,7 +154,7 @@ App::App(int* argc, char** argv)
     glewInit();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    initScene(imageData);
+    initScene(image);
 }
 
 void App::run()

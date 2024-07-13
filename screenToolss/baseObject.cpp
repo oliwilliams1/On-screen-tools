@@ -99,7 +99,7 @@ void baseObject::draw()
 	updateUniforms();
 
 	// Draw geometry
-	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, (GLsizei)indexCount, GL_UNSIGNED_INT, 0);
 
 	// Disable vertex attributes
 	glDisableVertexAttribArray(0);

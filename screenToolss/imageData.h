@@ -1,10 +1,15 @@
-struct imageType
+struct snoutImage
 {
 	int width;
 	int height;
-	imageType(int w, int h)
+	int channels;
+	std::vector<uint8_t>* imageData;
+
+	snoutImage(int width, int height, int channels, std::vector<uint8_t>* imageData)
 	{
-		width = w;
-		height = h;
-	}
+		this->width = width;
+		this->height = height;
+		this->channels = channels;
+		this->imageData = imageData;
+	}	
 };

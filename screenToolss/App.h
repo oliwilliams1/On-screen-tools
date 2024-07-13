@@ -57,6 +57,5 @@ private:
 	void addObject(const T& object);
 
 	// Init all objects for rendering
-	void initScene(std::vector<uint8_t> imageData);
+	void initScene(snoutImage image);
 };
-

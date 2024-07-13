@@ -7,14 +7,14 @@ private:
 	GLuint textureLocation;
 	GLuint textureID;
 
-	void createTexture(std::vector<uint8_t> imageData, imageType imageType)
+	void createTexture(snoutImage image)
 	{
 		// Generate and bind the texture object
 		glGenTextures(1, &textureID);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 
 		// Upload the image data to the texture
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageType.width, imageType.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData.data());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width, image.height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.imageData->data());
 
 		// Set the texture parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -34,11 +34,10 @@ public:
 		size_t uvCount,
 		const char* vertexShaderSource,
 		const char* fragmentShaderSource,
-		std::vector<uint8_t> imageData,
-		imageType imageType
+		snoutImage image
 	) : baseObject(vertices, vertexCount, indices, indexCount, uvCoords, uvCount, vertexShaderSource, fragmentShaderSource)
 	{
-		createTexture(imageData, imageType);
+		createTexture(image);
 	}
 
 	void updateUniforms()

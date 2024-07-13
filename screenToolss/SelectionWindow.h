@@ -5,9 +5,9 @@
 class SelectionWindow
 {
 private:
-	vec2* mousePos;
-	drawRect* rect;
-	vec2* windowSize;
+	vec2* mousePos = nullptr;
+	drawRect* rect = nullptr;
+	vec2* windowSize = nullptr;
 
 	vec2 cornerOne = vec2(0);
 	vec2 cornerTwo = vec2(0);
