@@ -2,11 +2,6 @@
 // Init the instance variable
 App* App::instance = nullptr;
 
-vec2 App::toNDC(vec2 value)
-{
-    return vec2(value.x * 2 - 1, value.y * 2 - 1);
-}
-
 const char* App::loadShaderSource(const char* filename) {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
@@ -27,14 +22,7 @@ const char* App::loadShaderSource(const char* filename) {
 }
 void App::mousePosCallback(int x, int y)
 {
-    // Get mouse coords between 0 to 1
-    instance->mousePos = vec2((x / instance->windowSize.x), (y / instance->windowSize.y));
-
-    // To NDC
-    instance->mousePos = instance->toNDC(instance->mousePos);
-
-    // Idk why it works but it does
-    instance->mousePos.y += 1.0f;
+    instance->mousePos = vec2(x, y);
 }
 
 void App::renderCB()
@@ -134,7 +122,7 @@ void App::initScene(std::vector<uint8_t> imageData)
     addObject(smallRect);
 
     auto& storedSmallRect = *dynamic_cast<drawRect*>(objects.back().get());
-    selectionWindow = SelectionWindow(&storedSmallRect, &mousePos);
+    selectionWindow = SelectionWindow(&storedSmallRect, &mousePos, &windowSize);
 }
 
 App::App(int* argc, char** argv)

@@ -10,7 +10,7 @@ void main()
 {
 	vec2 pos = position * widthHeight;
     gl_Position = vec4( mousePos.x + pos.x,
-                       -mousePos.y + pos.y + 1, 
+                       -mousePos.y + pos.y, 
                        0.0, 1.0);
     UV = uv;
 }

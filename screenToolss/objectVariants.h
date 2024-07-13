@@ -100,9 +100,6 @@ private:
 
 	void baseObject::updateUniforms() 
 	{
-		std::cout << "Corner 1: "; cornerOne.print();
-		std::cout << "Corner 2: "; cornerTwo.print();
-		std::cout << std::endl;
 		glUniform2f(mousePosLocation, cornerOne.x, cornerOne.y);
 		glUniform2f(widthHeightLocation, cornerTwo.x, cornerTwo.y);
 	};
