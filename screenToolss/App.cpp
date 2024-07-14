@@ -122,7 +122,7 @@ void App::initScene(snoutImage image)
     addObject(smallRect);
 
     auto& storedSmallRect = *dynamic_cast<drawRect*>(objects.back().get());
-    selectionWindow = SelectionWindow(&storedSmallRect, &mousePos, &windowSize);
+    selectionWindow = SelectionWindow(&storedSmallRect, &image, &mousePos, &windowSize);
 }
 
 App::App(int* argc, char** argv)
@@ -134,7 +134,7 @@ App::App(int* argc, char** argv)
     ScreenshotTaker screenshotTaker;
     std::vector<uint8_t> imageData = screenshotTaker.takeScreenshot();
 
-    snoutImage image = snoutImage(1920, 1080, 3, &imageData);
+    snoutImage image = snoutImage(1920, 1080, 3, imageData);
 
     glutInit(argc, argv);
     if (debug) {
